@@ -4,7 +4,7 @@ import boto3
 from datetime import datetime
 
 import http.client
-
+import pandas as pd
 
 
 
@@ -13,7 +13,7 @@ def fetch_nba_season_data():
     #api_url = "https://api.nba.com/stats/season"
     url = "https://api-nba-v1.p.rapidapi.com/games"
 
-    querystring = {"season":"2021"}
+    querystring = {"season":"2024"}
 
     headers = {
         "x-rapidapi-key": "8ecc64b251mshee3e1f83d92f07ep13f29bjsnc7f04016b16f",
@@ -24,6 +24,13 @@ def fetch_nba_season_data():
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
     print(response.json())
+
+    if isinstance(data, dict) and 'response' in data:
+        data = data['response']
+
+    df = pd.json_normalize(data)
+    
+    df.to_csv(f"season_data_{datetime.now().strftime('%Y%m%d')}.csv", index=False)
     #print(data.decode("utf-8"))
 
     # Fetch the data from the NBA API
@@ -43,9 +50,6 @@ def fetch_nba_season_data():
     # Access = AKIASLVYSPINBLTGBU6N
     # Secret = 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
 
-
-    # Initialize the S3 client
-    s3_client = boto3.client('s3')
 
     # Upload the data to S3
     s3.put_object(
